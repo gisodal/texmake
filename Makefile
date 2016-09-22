@@ -39,6 +39,7 @@ endif
 
 recursive_wildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call recursive_wildcard,$d/,$2))
 wildcarddir=$(shell find $1 -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
+recursive_wildcarddir=$(shell find $1 -mindepth 1 -type d 2>/dev/null)
 
 # ------------------------------------------------------------------------------
 # Environment
@@ -59,7 +60,7 @@ PACKAGE  = $(DIR)/packages
 DIAGRAMS = $(DIR)/diagrams
 SECTIONS = $(DIR)/sections
 STYLES   = $(STYLE) $(call wildcarddir,$(STYLE))
-PACKAGES = $(PACKAGE) $(call wildcarddir,$(PACKAGE))
+PACKAGES = $(PACKAGE) $(call recursive_wildcarddir,$(PACKAGE))
 
 INCLUDE  = $(DIR) $(BIB) $(PLOTS) $(TABLES) $(FIGURES) $(DIAGRAMS) $(SECTIONS) $(STYLES) $(PACKAGES) $(LATEX_INCLUDE_PATH)
 override LATEX_INCLUDE_PATH := $(subst $(subst ,, ),:,$(strip $(INCLUDE)))
