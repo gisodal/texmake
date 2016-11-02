@@ -151,7 +151,7 @@ archive: | $(BUILDDIR)/$(MAIN).fls
 archive: TARFILE = $$(echo $(ARCHIVEDIR)/$(MAIN)_$$(date +"%Y_%m_%d_%H_%M_%S") | tr -d ' ').tar
 archive: $(ARCHIVEDIR)
 	@echo "CREATE TAR $(TARFILE)";
-	@tar --exclude=".*" -cvf $(TARFILE) --transform 's,^,$(MAIN)/,' \
+	@tar --exclude=".*" -cvf $(TARFILE) --transform 's:^$(DIR:/%=%)/::' --transform 's:^$(DIR)/::' --transform 's:^:$(MAIN)/:'\
 		$(wildcard Makefile README) $(DIR)/$(BIB)/$(MAIN).export.bib $(shell cat $(BUILDDIR)/$(MAIN).fls | grep 'INPUT.*$(DIR)' | awk '{print $$2}' | uniq)  2>/dev/null \
 		| sed 's:^:    ADD :'
 
