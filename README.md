@@ -34,16 +34,5 @@ The Makefile must be in the same directory as the main TeX file (containing the 
 | archive       | create tarball of local files   |
 | view [viewer] | open pdf with [viewer]          |
 
-ptions:
-    bibexport     : export bib file
-    archive       : create tarball of local files
-    cite          : bibtex citations
-    clean         : remove latex build files
-    update        : update local texhash
-    view [viewer] : open pdf with [viewer]
-
-
-
-
 \* = default
 
