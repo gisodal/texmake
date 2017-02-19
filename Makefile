@@ -132,13 +132,13 @@ endif
 
 view: VIEWER = $(firstword $(ARGS))
 view:
-	@PDFVIEWER=$$([ -z "$(VIEWER)" ] && echo $(PDFVIEWER) || echo $(VIEWER)); \
-	if [ $$(command -v $$PDFVIEWER) ]; then                                   \
-		echo "$$PDFVIEWER $(MAIN).pdf";                                       \
-		env -i DISPLAY=$$DISPLAY $$PDFVIEWER $(DIR)/$(MAIN).pdf;              \
-	else                                                                      \
-		echo "Cannot view $(MAIN).pdf, Command '$$PDFVIEWER' does not exist." 1>&2;   \
-		exit 0;                                                               \
+	@PDFVIEWER=$$([ -z "$(VIEWER)" ] && echo $(PDFVIEWER) || echo $(VIEWER)); 						\
+	if [ $$(command -v $$PDFVIEWER) ]; then                                   						\
+		echo "$$PDFVIEWER $(MAIN).pdf";                                       						\
+		nohup env -i DISPLAY=$$DISPLAY $$PDFVIEWER $(DIR)/$(MAIN).pdf </dev/null >/dev/null 2>&1 &; \
+	else                                                                      						\
+		echo "Cannot view $(MAIN).pdf, Command '$$PDFVIEWER' does not exist." 1>&2;   				\
+		exit 0;                                                               						\
 	fi;
 
 
