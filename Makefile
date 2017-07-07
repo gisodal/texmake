@@ -65,14 +65,14 @@ LATEX 	   = TEXINPUTS="$(LATEX_INCLUDE_PATH):$(TEXINPUTS)" pdflatex $(TEXFLAGS)
 IBIBS      = $(wildcard $(DIR)/bib/*.bib) $(wildcard $(DIR)/*.bib)
 OBIBS      = $(addprefix $(BUILDDIR)/, $(notdir $(IBIBS)))
 BIBTEX     = bibtex
-PDFVIEWER  = mupdf
+PDFVIEWER  = evince
 BIBTOOL    = bibtool -s -d -x
 
 # ------------------------------------------------------------------------------
 # Rules
 # ------------------------------------------------------------------------------
 
-.PHONY: $(MAIN) clean pdf bib plots diagrams view all archive
+.PHONY: $(MAIN) clean pdf bib plots diagrams view all archive ls
 
 $(MAIN): pdf
 
@@ -152,7 +152,7 @@ archive: TARFILE = $$(echo $(ARCHIVEDIR)/$(MAIN)_$$(date +"%Y_%m_%d_%H_%M_%S") |
 archive: $(ARCHIVEDIR)
 	@echo "CREATE TAR $(TARFILE)";
 	@tar --exclude=".*" -cvf $(TARFILE) --transform 's:^$(DIR:/%=%)/::' --transform 's:^$(DIR)/::' --transform 's:^:$(MAIN)/:'\
-		$(wildcard Makefile README) $(DIR)/$(BIB)/$(MAIN).export.bib $(shell cat $(BUILDDIR)/$(MAIN).fls | grep 'INPUT.*$(DIR)' | awk '{print $$2}' | uniq)  2>/dev/null \
+		$(wildcard Makefile README) $(DIR)/*.bib  $(DIR)/$(BIB)/*.bib $(shell cat $(BUILDDIR)/$(MAIN).fls | command grep 'INPUT.*$(DIR)' | command grep -v 'INPUT.*$(BUILDDIR)' | command awk '{print $$2}' | command uniq)  2>/dev/null \
 		| sed 's:^:    ADD :'
 
 update:
@@ -164,6 +164,16 @@ update:
 	fi;
 
 force: ;
+
+ls: force
+	@if [ -f "$(BUILDDIR)/$(MAIN).fls" ]; then               \
+		cat $(BUILDDIR)/$(MAIN).fls |                        \
+			command grep 'INPUT.*$(DIR)' |                   \
+			command grep -v 'INPUT.*$(BUILDDIR)' |           \
+			command awk '{print $$2}';                       \
+	else                                                     \
+		echo "dependency file '$(MAIN).fls' not found" 1>&2; \
+	fi;
 
 help:
 	@echo "Usage:"

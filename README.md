@@ -27,6 +27,7 @@ The Makefile must be in the same directory as the main TeX file (containing the 
 | --- |--- |
 | pdf\*         | create pdf from <TEX file>      |
 | all           | create pdf and bibtex citations |
+| ls            | list local file dependencies    |
 | bib           | create bib file                 |
 | cite          | bibtex citations                |
 | clean         | remove latex build files        |
