@@ -54,7 +54,7 @@ BUILDDIR   = $(DIR)/build
 ARCHIVEDIR = $(DIR)/archive
 STYLE      = $(DIR)/style
 PACKAGE    = $(DIR)/packages
-STYLES     = $(STYLE) $(call wildcarddir,$(STYLE))
+STYLES     = $(STYLE) $(call recursive_wildcarddir,$(STYLE))
 PACKAGES   = $(PACKAGE) $(call recursive_wildcarddir,$(PACKAGE))
 
 INCLUDE    = $(DIR) $(STYLES) $(PACKAGES) $(LATEX_INCLUDE_PATH)
@@ -67,6 +67,25 @@ OBIBS      = $(addprefix $(BUILDDIR)/, $(notdir $(IBIBS)))
 BIBTEX     = bibtex
 PDFVIEWER  = evince
 BIBTOOL    = bibtool -s -d -x
+
+# ------------------------------------------------------------------------------
+# Git commands
+# ------------------------------------------------------------------------------
+
+GITAVAILABLE := $(shell command -v git 2> /dev/null)
+ifdef GITAVAILABLE
+
+GITLOCATION = $(shell git rev-parse --show-toplevel 2> /dev/null)
+ifeq ($(GITLOCATION),$(DIR))
+BRANCH = $(shell git rev-parse --abbrev-ref HEAD 2> /dev/null)
+COMMIT = $(shell git rev-list --count HEAD 2> /dev/null)
+DATE = $(shell git show -s --format=%ci HEAD 2> /dev/null)
+$(file > .version,\
+	\newcommand{\gitbranch}{$(BRANCH)}\
+	\newcommand{\gitcommit}{$(COMMIT)}\
+	\newcommand{\gitdate}{$(DATE)})
+endif
+endif
 
 # ------------------------------------------------------------------------------
 # Rules
@@ -152,7 +171,7 @@ archive: TARFILE = $$(echo $(ARCHIVEDIR)/$(MAIN)_$$(date +"%Y_%m_%d_%H_%M_%S") |
 archive: $(ARCHIVEDIR)
 	@echo "CREATE TAR $(TARFILE)";
 	@tar --exclude=".*" -cvf $(TARFILE) --transform 's:^$(DIR:/%=%)/::' --transform 's:^$(DIR)/::' --transform 's:^:$(MAIN)/:'\
-		$(wildcard Makefile README) $(DIR)/*.bib  $(DIR)/$(BIB)/*.bib $(shell cat $(BUILDDIR)/$(MAIN).fls | command grep 'INPUT.*$(DIR)' | command grep -v 'INPUT.*$(BUILDDIR)' | command awk '{print $$2}' | command uniq)  2>/dev/null \
+		Makefile README $(shell find $(DIR) -name '*.bib') $(shell cat $(BUILDDIR)/$(MAIN).fls | grep 'INPUT.*$(DIR)' | grep -v 'INPUT.*$(BUILDDIR)' |awk '{print $$2}' | uniq)  2>/dev/null \
 		| sed 's:^:    ADD :'
 
 update:
