@@ -45,6 +45,10 @@ recursive_wildcarddir=$(shell find $1 -mindepth 1 -type d 2>/dev/null)
 # Environment
 # ------------------------------------------------------------------------------
 
+export max_print_line=10000
+export error_line=254
+export half_error_line=238
+
 MAIN       = $(basename $(TEXFILE))
 SHELL      = /bin/bash
 
