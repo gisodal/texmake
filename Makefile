@@ -83,7 +83,7 @@ GITLOCATION = $(shell git rev-parse --show-toplevel 2> /dev/null)
 ifeq ($(GITLOCATION),$(DIR))
 BRANCH = $(shell git rev-parse --abbrev-ref HEAD 2> /dev/null)
 COMMIT = $(shell git rev-list --count HEAD 2> /dev/null)
-DATE = $(shell git show -s --format=%ci HEAD 2> /dev/null)
+DATE = $(shell git show -s --format=%cd --date=local HEAD 2> /dev/null)
 $(file > .version,\
 	\newcommand{\gitbranch}{$(BRANCH)}\
 	\newcommand{\gitcommit}{$(COMMIT)}\
