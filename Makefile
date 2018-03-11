@@ -95,17 +95,17 @@ endif
 # Rules
 # ------------------------------------------------------------------------------
 
-.PHONY: $(MAIN) clean pdf bib plots diagrams view all archive ls
+.PHONY: $(MAIN) clean pdf bibtex bib plots diagrams view all archive ls
 
 $(MAIN): pdf
 
 pdf: $(MAIN).pdf
 
-cite: $(BUILDDIR)/$(MAIN).bbl $(OBIBS) | $(BUILDDIR)
+bibtex: $(BUILDDIR)/$(MAIN).bbl $(OBIBS) | $(BUILDDIR)
 
 all:
 	$(MAKE) pdf
-	$(MAKE) cite
+	$(MAKE) bibtex
 	$(MAKE) pdf
 	$(MAKE) pdf
 
@@ -124,7 +124,7 @@ $(BUILDDIR)/$(MAIN).aux: pdf
 $(foreach bibfile,$(IBIBS),$(eval $(addprefix $(BUILDDIR)/,$(notdir $(bibfile))): $(bibfile);	@cp $$< $$@))
 
 $(BUILDDIR)/$(MAIN).bbl: force $(OBIBS) | $(BUILDDIR)
-	@cd $(BUILDDIR); $(BIBTEX) $(MAIN);
+	@cd $(BUILDDIR); $(BIBTEX) $(MAIN); for BIB in $$(find . -name '*-blx.aux'); do $(BIBTEX) $$BIB; done;
 
 $(BUILDDIR):
 	@mkdir -p "$(BUILDDIR)"
@@ -206,7 +206,7 @@ help:
 	@echo "    pdf*          : create pdf from '$(TEXFILE)'"
 	@echo "    all           : create pdf and bibtex citations"
 	@echo "    bib           : create bib file"
-	@echo "    cite          : bibtex citations"
+	@echo "    bibtex        : bibtex citations"
 	@echo "    clean         : remove latex build files"
 	@echo "    update        : update local texhash"
 	@echo "    archive       : create tarball of local files"
