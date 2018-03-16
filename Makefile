@@ -54,6 +54,7 @@ SHELL      = /bin/bash
 
 DIR  	   = $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 BIB        = $(DIR)/bib
+TIKZDIR   = $(DIR)/build
 BUILDDIR   = $(DIR)/build
 ARCHIVEDIR = $(DIR)/archive
 STYLE      = $(DIR)/style
@@ -64,7 +65,7 @@ PACKAGES   = $(PACKAGE) $(call recursive_wildcarddir,$(PACKAGE))
 INCLUDE    = $(DIR) $(STYLES) $(PACKAGES) $(LATEX_INCLUDE_PATH)
 override   LATEX_INCLUDE_PATH := $(subst $(subst ,, ),:,$(strip $(INCLUDE)))
 
-TEXFLAGS   = -halt-on-error -file-line-error -interaction=nonstopmode -output-directory="$(BUILDDIR)" -recorder
+TEXFLAGS   = -shell-escape -halt-on-error -file-line-error -interaction=nonstopmode -output-directory="$(BUILDDIR)" -recorder
 LATEX 	   = TEXINPUTS="$(LATEX_INCLUDE_PATH):$(TEXINPUTS)" pdflatex $(TEXFLAGS)
 IBIBS      = $(wildcard $(DIR)/bib/*.bib) $(wildcard $(DIR)/*.bib)
 OBIBS      = $(addprefix $(BUILDDIR)/, $(notdir $(IBIBS)))
@@ -83,11 +84,12 @@ GITLOCATION = $(shell git rev-parse --show-toplevel 2> /dev/null)
 ifeq ($(GITLOCATION),$(DIR))
 BRANCH = $(shell git rev-parse --abbrev-ref HEAD 2> /dev/null)
 COMMIT = $(shell git rev-list --count HEAD 2> /dev/null)
-DATE = $(shell git show -s --format=%ci HEAD 2> /dev/null)
-$(file > .version,\
-	\newcommand{\gitbranch}{$(BRANCH)}\
-	\newcommand{\gitcommit}{$(COMMIT)}\
-	\newcommand{\gitdate}{$(DATE)})
+DATE = $(shell git show -s --format=%cd --date=local HEAD 2> /dev/null)
+$(shell echo -e '\
+\\newcommand{\\gitbranch}{$(BRANCH)}\n\
+\\newcommand{\\gitcommit}{$(COMMIT)}\n\
+\\newcommand{\\gitdate}{$(DATE)}\
+' > .version)
 endif
 endif
 
@@ -95,17 +97,17 @@ endif
 # Rules
 # ------------------------------------------------------------------------------
 
-.PHONY: $(MAIN) clean pdf bib plots diagrams view all archive ls
+.PHONY: $(MAIN) clean pdf bibtex bib plots diagrams view all archive ls
 
 $(MAIN): pdf
 
 pdf: $(MAIN).pdf
 
-cite: $(BUILDDIR)/$(MAIN).bbl $(OBIBS) | $(BUILDDIR)
+bibtex: $(BUILDDIR)/$(MAIN).bbl $(OBIBS) | $(BUILDDIR)
 
 all:
 	$(MAKE) pdf
-	$(MAKE) cite
+	$(MAKE) bibtex
 	$(MAKE) pdf
 	$(MAKE) pdf
 
@@ -116,7 +118,7 @@ bib: force $(filter-out %$(MAIN).export.bib,$(IBIBS)) | $(BIB)
 $(MAIN).pdf: $(BUILDDIR)/$(MAIN).pdf
 	@cp $(BUILDDIR)/$(MAIN).pdf $(DIR)/
 
-$(BUILDDIR)/$(MAIN).pdf: force | $(BUILDDIR)
+$(BUILDDIR)/$(MAIN).pdf: force | $(BUILDDIR) $(TIKZDIR)
 	@$(LATEX) $(DIR)/$(MAIN).tex
 
 $(BUILDDIR)/$(MAIN).aux: pdf
@@ -124,10 +126,14 @@ $(BUILDDIR)/$(MAIN).aux: pdf
 $(foreach bibfile,$(IBIBS),$(eval $(addprefix $(BUILDDIR)/,$(notdir $(bibfile))): $(bibfile);	@cp $$< $$@))
 
 $(BUILDDIR)/$(MAIN).bbl: force $(OBIBS) | $(BUILDDIR)
-	@cd $(BUILDDIR); $(BIBTEX) $(MAIN);
+	@cd $(BUILDDIR); $(BIBTEX) $(MAIN); \
+	for BIB in $$(find . -name '*-blx.aux'); do $(BIBTEX) $$BIB; done;
 
 $(BUILDDIR):
 	@mkdir -p "$(BUILDDIR)"
+
+$(TIKZDIR):
+	@mkdir -p "$(TIKZDIR)"
 
 $(ARCHIVEDIR):
 	@mkdir -p "$(ARCHIVEDIR)"
@@ -206,7 +212,7 @@ help:
 	@echo "    pdf*          : create pdf from '$(TEXFILE)'"
 	@echo "    all           : create pdf and bibtex citations"
 	@echo "    bib           : create bib file"
-	@echo "    cite          : bibtex citations"
+	@echo "    bibtex        : bibtex citations"
 	@echo "    clean         : remove latex build files"
 	@echo "    update        : update local texhash"
 	@echo "    archive       : create tarball of local files"
