@@ -54,7 +54,7 @@ SHELL      = /bin/bash
 
 DIR  	   = $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 BIB        = $(DIR)/bib
-TIKZDIR   = $(DIR)/build
+TIKZDIR    = $(DIR)/tikz
 BUILDDIR   = $(DIR)/build
 ARCHIVEDIR = $(DIR)/archive
 STYLE      = $(DIR)/style
