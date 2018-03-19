@@ -18,7 +18,7 @@ $(eval $(ARGS):;@:)
         endif
 	    TEXFILE := $(shell echo $(TEXFILE) \
 	    	| xargs grep -r -H "documentclass" -- \
-	    	| cut -d: -f1)
+	    	| cut -d: -f1 | sort | uniq)
         MATCHES = $(shell echo $(TEXFILE) | wc -w)
 
         ifeq ($(shell test $(MATCHES) -eq 1; echo $$?),0)
@@ -97,7 +97,7 @@ endif
 # Rules
 # ------------------------------------------------------------------------------
 
-.PHONY: $(MAIN) clean pdf bibtex bib plots diagrams view all archive ls
+.PHONY: $(MAIN) clean pdf draft bibtex bib plots diagrams view all archive ls
 
 $(MAIN): pdf
 
@@ -115,11 +115,13 @@ bib: force $(filter-out %$(MAIN).export.bib,$(IBIBS)) | $(BIB)
 	@$(BIBTOOL) $(BUILDDIR)/$(MAIN).aux $(IBIBS) 2>/dev/null > $(BIB)/$(MAIN).export.bib
 	@echo "$(BIB)/$(MAIN).export.bib created.."
 
-$(MAIN).pdf: $(BUILDDIR)/$(MAIN).pdf
+$(MAIN).pdf: force | $(BUILDDIR) $(TIKZDIR)
+	@$(LATEX) $(DIR)/$(MAIN).tex
 	@cp $(BUILDDIR)/$(MAIN).pdf $(DIR)/
 
-$(BUILDDIR)/$(MAIN).pdf: force | $(BUILDDIR) $(TIKZDIR)
-	@$(LATEX) $(DIR)/$(MAIN).tex
+draft: force | $(BUILDDIR) $(TIKZDIR)
+	@$(LATEX) "\def\isdraft{1} \input{$(DIR)/$(MAIN).tex}"
+	@cp $(BUILDDIR)/$(MAIN).pdf $(DIR)/
 
 $(BUILDDIR)/$(MAIN).aux: pdf
 
@@ -206,7 +208,7 @@ ls: force
 
 help:
 	@echo "Usage:"
-	@echo "    make [option] [LATEX_INCLUDE_PATH=PATH1[:PATH2[:..]]]"
+	@echo "    make [options] [LATEX_INCLUDE_PATH=PATH1[:PATH2[:..]]]"
 	@echo ""
 	@echo "Options:"
 	@echo "    pdf*          : create pdf from '$(TEXFILE)'"
@@ -217,6 +219,12 @@ help:
 	@echo "    update        : update local texhash"
 	@echo "    archive       : create tarball of local files"
 	@echo "    view [viewer] : open pdf with [viewer]"
+	@echo "    draft         : compile as draft"
+	@echo "                        For drafting, start main tex file with:"
+	@echo "                        \ifdefined\isdraft"
+	@echo "                            \PassOptionsToClass{draft}{<doc class>}"
+	@echo "                        \fi"
+	@echo "                        \documentclass[...]{<doc class>}"
 	@echo ""
 	@echo "    * = default"
 	@echo ""
