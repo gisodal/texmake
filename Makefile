@@ -82,15 +82,17 @@ ifdef GITAVAILABLE
 
 GITLOCATION = $(shell git rev-parse --show-toplevel 2> /dev/null)
 ifeq ($(GITLOCATION),$(DIR))
-BRANCH = $(shell git rev-parse --abbrev-ref HEAD 2> /dev/null)
-COMMIT = $(shell git rev-list --count HEAD 2> /dev/null)
-DATE = $(shell git show -s --format=%cd --date=local HEAD 2> /dev/null)
-NOWDATE = $(shell date +'%a %b %d %H:%M:%S %Y')
+GITBRANCH = $(shell git rev-parse --abbrev-ref HEAD 2> /dev/null)
+GITCOMMIT = $(shell git rev-list --count HEAD 2> /dev/null)
+GITDATE = $(shell git show -s --format=%cd --date=local HEAD 2> /dev/null)
+GITUSER = $(shell git config user.name)
+COMPILEDATE = $(shell date +'%a %b %d %H:%M:%S %Y')
 $(shell echo -e '\
-\\newcommand{\\gitbranch}{$(BRANCH)}\n\
-\\newcommand{\\gitcommit}{$(COMMIT)}\n\
-\\newcommand{\\gitdate}{$(DATE)}\n\
-\\newcommand{\\compiledate}{$(NOWDATE)}\
+\\newcommand{\\gitbranch}{$(GITBRANCH)}\n\
+\\newcommand{\\gitcommit}{$(GITCOMMIT)}\n\
+\\newcommand{\\gitdate}{$(GITDATE)}\n\
+\\newcommand{\\gituser}{$(GITUSER)}\n\
+\\newcommand{\\compiledate}{$(COMPILEDATE)}\
 ' > .version)
 endif
 endif
